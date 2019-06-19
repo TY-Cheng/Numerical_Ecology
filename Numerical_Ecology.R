@@ -2,7 +2,7 @@
 library(dplyr)
 library(ggplot2)
 library(runjags)
-setwd("/Users/chengt/OneDrive/MBR_Yasmeen")
+setwd("/Users/chengt/Documents/R/MBR_Ecology/")
 load('MBR_Yasmeen.RData')
 # 
 # To avoid warning 
@@ -105,7 +105,7 @@ dim(Sample_Sum_PCOFGS(df = Species_Yasmeen, by = 'Phylum', threshold = .008))
 dim(Sample_Sum_PCOFGS(df = Species_Yasmeen, by = 'Class', threshold = .0188))
 dim(Sample_Sum_PCOFGS(df = Species_Yasmeen, by = 'Order', threshold = .03))
 dim(Sample_Sum_PCOFGS(df = Species_Yasmeen, by = 'Family', threshold = .05))
-if(0){
+if(1){
     for (iter_i in 1:4) {
         cluster_by <- c('Phylum', 'Class', 'Order', 'Family')[iter_i]
         threshold <- c(.008, .0188, .03, .05)[iter_i]
@@ -187,7 +187,7 @@ if(1){
     colnames(Phylum_WQ_io)[4+J_1+J_2+K]                     # Total
     
     # K = 7 #buckets, size = Total #balls, N = 18 #times    !!!
-    # WQ_in & WQ_out have J_1 = 4 & J_2 = 5 # covariates    !!!
+    # WQ_in & WQ_out have J_1 = 4 & J_2 = 4 # covariates    !!!
 }
 
 # Bayesian
@@ -227,7 +227,7 @@ if(1){
         for(i in 1:K) {
             for(j in 1:J_1){
                 beta_in[i,j] ~ dnorm(0, nu_1)
-                beta_in_center[i,j] <- beta_in[i,j] - mean(beta_in[i,])
+                beta_in_center[i,j] <- beta_in[i,j] - mean(beta_in[, j])
             }
         }
         nu_1 ~ dgamma(1,1)
@@ -359,7 +359,9 @@ if(1){
         for(i in 1:K) {
             for(j in 1:J_1){
                 beta_in[i,j] ~ dnorm(0, nu_1)
-                beta_in_center[i,j] <- beta_in[i,j] - mean(beta_in[i,])
+                beta_in_center[i,j] <- beta_in[i,j] - mean(beta_in[, j])
+                # j, colmean, effect of the each factor centered
+                # i, rowmean, effect of the each phylum centered
             }
             for(j in 1:J_2){
                 beta_out[i,j] ~ dnorm(0, nu_2)
@@ -392,8 +394,8 @@ if(1){
         ),
         monitor = c("beta_in_center", "beta_out"),
         # monitor = c("beta_in"),
-        sample = 10000,
-        thin = 1000,
+        sample = 100,
+        thin = 10000,
         n.chains = 2,
         method = 'parallel'
     )
@@ -405,7 +407,7 @@ if(1){
 # 4. Parallel_Coordinates, Complete --------------------------------
 # 1) to WQ_out from Phylum, Complete
 # 2) to Phylum from WQ_in, Complete
-if(0){
+if(1){
     # # # # # # # # # # # # # # # # # # # # # # # # # 
     # Contribution to WQ_out from Phylum, complete  # 
     # # # # # # # # # # # # # # # # # # # # # # # # # 
@@ -427,32 +429,34 @@ if(0){
                                           rep(j_2_seq, each = K), 
                                           sep = '_'))
     # Ignore "Deinococcus.Thermus"
-    # dfm <- select(dfm, - starts_with(p_seq[4]))
+    dfm <- select(dfm, - starts_with(p_seq[4]))
     # Sort by Phylum
     if(0){dfm <- dfm[,sort(colnames(dfm))]}    
     # subsample, for plotting
-    dfm <- dfm[sample(NROW(dfm), size = NROW(dfm)/100), ]
+    dfm <- dfm[sample(NROW(dfm), size = NROW(dfm)/1), ]
     dfm <- reshape2::melt(dfm, id.var = 'index')
     # 
-    ggplot(data = dfm, 
-           aes(x = variable, y = value, group = index)) +
-        geom_line(alpha = .1) + 
-        geom_point(alpha = .1) +
-        ggtitle('From_WQout_To_Phylum, with Deinococcus.Thermus') +
-        # ggtitle('From_WQin_To_Phylum, without Deinococcus.Thermus') +
-        xlab('Parameters') +
-        ylab('Estimated Values') +
-        theme_bw() +
-        theme(axis.text.x = element_text(angle = 60, hjust = 1))
+    print(
+        ggplot(data = dfm, 
+               aes(x = variable, y = value, group = index)) +
+            geom_line(alpha = .1) + 
+            geom_point(alpha = .1) +
+            ggtitle('From_Phylum_To_WQout, with Deinococcus.Thermus') +
+            # ggtitle('From_WQin_To_Phylum, without Deinococcus.Thermus') +
+            xlab('Parameters') +
+            ylab('Estimated Values') +
+            theme_bw() +
+            theme(axis.text.x = element_text(angle = 60, hjust = 1))
+    )
     # scale_y_continuous(
     #     limits = c(-2,2), 
     #     breaks = seq(-3, 3, .5), minor_breaks = seq(-2, 2, .1))
     if(0){
-        ggsave('From_Phylum_To_WQ_out_Complete, with Deinococcus.Thermus.svg',
+        ggsave('WQin to Phylum.svg',
                device = 'svg', width = 16, height = 9)
     }
 }
-if(0){
+if(1){
     # # # # # # # # # # # # # # # # # # # # # # # #  
     # Contribution to Phylum from WQ_in, complete # 
     # # # # # # # # # # # # # # # # # # # # # # # #
@@ -474,30 +478,43 @@ if(0){
                                           rep(j_1_seq, each = K), 
                                           sep = '_'))
     # Ignore "Deinococcus.Thermus"
-    # dfm <- select(dfm, - starts_with(p_seq[4]))
+    dfm <- select(dfm, - starts_with(p_seq[4]))
     # Sort by Phylum
     if(1){dfm <- dfm[,sort(colnames(dfm))]}    
     # subsample, for plotting
-    dfm <- dfm[sample(NROW(dfm), size = NROW(dfm)/100), ]
+    set.seed(2019)
+    dfm <- dfm[sample(NROW(dfm), size = NROW(dfm)/1), ]
     dfm <- reshape2::melt(dfm, id.var = 'index')
     # 
-    ggplot(data = dfm, 
-           aes(x = variable, y = value, group = index)) +
-        geom_line(alpha = .1) + 
-        geom_point(alpha = .1) +
-        ggtitle('From_WQin_To_Phylum_Complete, with Deinococcus.Thermus') +
-        # ggtitle('From_WQin_To_Phylum_Complete, without Deinococcus.Thermus') +
-        xlab('Parameters') +
-        ylab('Estimated Values') +
-        theme_bw() +
-        theme(axis.text.x = element_text(angle = 60, hjust = 1))
+    print(
+        ggplot(data = dfm, 
+               aes(x = variable, y = value, group = index)) +
+            geom_line(alpha = .13) + 
+            geom_point(alpha = .13) +
+            geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+            geom_vline(xintercept = seq(from = 0, to = 28, by = 4) + .5,
+                       linetype = 'dashed', color = 'black') + 
+            # ggtitle('From_WQin_To_Phylum_Complete, with Deinococcus.Thermus') +
+            ggtitle(
+                'Estimated effect of influent water quality on phylum abundance'
+            ) +
+            xlab('Parameters') +
+            ylab('Estimated Values') +
+            scale_y_continuous(
+                limits = c(-.3,.3),
+                breaks = seq(from = -.4, to = .4, by = .1),
+                minor_breaks = seq(from = -.4, to = .4, by = .05)
+            ) +
+            theme_minimal(base_size = 12) +
+            theme(axis.text.x = element_text(angle = 60, hjust = 1))
+    )
     # scale_y_continuous(
     #     limits = c(-2,2), 
     #     breaks = seq(-3, 3, .5), minor_breaks = seq(-2, 2, .1))
     if(0){
-        ggsave('From_WQin_To_Phylum_Complete, with Deinococcus.Thermus.svg',
-               # ggsave('From_WQin_To_Phylum_Complete, without Deinococcus.Thermus.svg',
-               device = 'svg', width = 16, height = 9)
+        # ggsave('From_WQin_To_Phylum_Complete, with Deinococcus.Thermus.svg',
+        ggsave('Effects.svg',
+               device = 'svg')
     }
 }
 
