@@ -147,20 +147,22 @@ if(1){
     }
     if(0){
         p_Phylum
-        ggsave('a_BarPlot_Phylum.eps', device = 'eps', 
+        ggsave('a_BarPlot_Phylum.eps', p_Phylum, device = 'eps', 
                width = 9, height = 6)
         p_Class
-        ggsave('b_BarPlot_Class.eps', device = 'eps',
+        ggsave('b_BarPlot_Class.eps', p_Class, device = 'eps',
                width = 9, height = 6)
         p_Order
-        ggsave('c_BarPlot_Order.eps', device = 'eps',
+        ggsave('c_BarPlot_Order.eps', p_Order, device = 'eps',
                width = 9, height = 6)
         p_Family
-        ggsave('d_BarPlot_Family.eps', device = 'eps',
+        ggsave('d_BarPlot_Family.eps', p_Family, device = 'eps',
                width = 9, height = 6)
         # four together
-        gridExtra::grid.arrange(p_Phylum, p_Class, 
+        p_all <- gridExtra::grid.arrange(p_Phylum, p_Class, 
                                 p_Order, p_Family, ncol = 2)
+        ggsave('BarPlot_All.eps', p_all, device = 'eps',
+               width = 16, height = 9)
     }
 }
 
