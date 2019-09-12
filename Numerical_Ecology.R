@@ -15,9 +15,11 @@ runjags.options(silent.jags = F, silent.runjags = F,
                 tempdir.warning = T, nodata.warning = T)
 
 # Exploration -------------------------------------------------------------
+
+# Species_Yasmeen <- clipr::read_clip_tbl()
 colnames(Species_Yasmeen)
 # category:     1:7     ;
-# sample:       8:25    ;
+# sample:       8:22    ;
 # Species_Yasmeen <- arrange(
 #     Species_Yasmeen, Phylum, Class, Order, Family, Genus, Species)
 # Species_Yasmeen <- filter(Species_Yasmeen, !is.na(.data$Species))
@@ -31,24 +33,24 @@ if(0){
     # no c__ in Class
     sort(unique(Species_Yasmeen$Kingdom))
     sort(unique(Species_Yasmeen$Phylum))
-    100 * colSums(filter(Species_Yasmeen, .data$Phylum == 'p__')[8:25])/
-        colSums(Species_Yasmeen[8:25])
+    100 * colSums(filter(Species_Yasmeen, .data$Phylum == 'p__')[8:22])/
+        colSums(Species_Yasmeen[8:22])
     sort(unique(Species_Yasmeen$Class))
-    100 * colSums(filter(Species_Yasmeen, .data$Class == 'c__')[8:25])/
-        colSums(Species_Yasmeen[8:25])
+    100 * colSums(filter(Species_Yasmeen, .data$Class == 'c__')[8:22])/
+        colSums(Species_Yasmeen[8:22])
     # 
     sort(unique(Species_Yasmeen$Order))
-    100 * colSums(filter(Species_Yasmeen, .data$Order == 'o__')[8:25])/
-        colSums(Species_Yasmeen[8:25])
+    100 * colSums(filter(Species_Yasmeen, .data$Order == 'o__')[8:22])/
+        colSums(Species_Yasmeen[8:22])
     sort(unique(Species_Yasmeen$Family))
-    100 * colSums(filter(Species_Yasmeen, .data$Family == 'f__')[8:25])/
-        colSums(Species_Yasmeen[8:25])
+    100 * colSums(filter(Species_Yasmeen, .data$Family == 'f__')[8:22])/
+        colSums(Species_Yasmeen[8:22])
     sort(unique(Species_Yasmeen$Genus))
-    100 * colSums(filter(Species_Yasmeen, .data$Genus == 'g__')[8:25])/
-        colSums(Species_Yasmeen[8:25])
+    100 * colSums(filter(Species_Yasmeen, .data$Genus == 'g__')[8:22])/
+        colSums(Species_Yasmeen[8:22])
     sort(unique(Species_Yasmeen$Species))
-    100 * colSums(filter(Species_Yasmeen, .data$Species == 's__')[8:25])/
-        colSums(Species_Yasmeen[8:25])
+    100 * colSums(filter(Species_Yasmeen, .data$Species == 's__')[8:22])/
+        colSums(Species_Yasmeen[8:22])
 }
 # 
 
@@ -60,31 +62,33 @@ Sample_Sum_PCOFGS <- function(
     for (iter_by in iter_seq) {
         subdf <- df[df[by]==iter_by, ]
         # print(iter_by)
-        # print(colSums(subdf[8:25]))
-        row_new <- colSums(subdf[8:25])
+        # print(colSums(subdf[8:NCOL(df)]))
+        row_new <- colSums(subdf[8:NCOL(df)])
         df_colsum <- rbind(df_colsum, 
                            row_new)
     }
     df_colsum <- cbind(iter_seq, df_colsum)
     dimnames(df_colsum) <- list(
         iter_seq,
-        c(by, colnames(df)[8:25])
+        c(by, colnames(df)[8:NCOL(df)])
     )
     # Thresholding
-    COLSUM_Final <- colSums(df_colsum[2:19])
-    Other_rowindex <- rowSums((df_colsum[, 2:19]/COLSUM_Final) <= threshold)>17
-    Other <- colSums(df_colsum[Other_rowindex, 2:19])
+    COLSUM_Final <- colSums(df_colsum[2:NCOL(df_colsum)])
+    # below threshold in all cases
+    Other_rowindex <- 
+        rowSums((df_colsum[, 2:NCOL(df_colsum)]/COLSUM_Final) <= threshold) >= 
+        (ncol(df_colsum)-1)
+    Other <- colSums(df_colsum[Other_rowindex, 2:NCOL(df_colsum)])
     df_colsum <- rbind(
-        df_colsum[!Other_rowindex, 2:19],
+        df_colsum[!Other_rowindex, 2:NCOL(df_colsum)],
         Other
     )
     iter_seq <- c(names(Other_rowindex[!Other_rowindex]), 'Other')
     df_colsum <- cbind(iter_seq, df_colsum)
     dimnames(df_colsum) <- list(
         iter_seq,
-        c(by, colnames(df)[8:25])
+        c(by, colnames(df)[8:NCOL(df)])
     )
-    
     return(df_colsum)
 }
 
@@ -101,14 +105,14 @@ Sample_Sum_PCOFGS <- function(
 
 # Stacked BarPlot ---------------------------------------------------------
 # May plot for Phylum, Class, Order, Family level
-dim(Sample_Sum_PCOFGS(df = Species_Yasmeen, by = 'Phylum', threshold = .008))
-dim(Sample_Sum_PCOFGS(df = Species_Yasmeen, by = 'Class', threshold = .0188))
-dim(Sample_Sum_PCOFGS(df = Species_Yasmeen, by = 'Order', threshold = .03))
-dim(Sample_Sum_PCOFGS(df = Species_Yasmeen, by = 'Family', threshold = .05))
+dim(Sample_Sum_PCOFGS(df = Species_Yasmeen, by = 'Phylum', threshold = .005))
+dim(Sample_Sum_PCOFGS(df = Species_Yasmeen, by = 'Class', threshold = .017))
+dim(Sample_Sum_PCOFGS(df = Species_Yasmeen, by = 'Order', threshold = .025))
+dim(Sample_Sum_PCOFGS(df = Species_Yasmeen, by = 'Family', threshold = .044))
 if(1){
     for (iter_i in 1:4) {
         cluster_by <- c('Phylum', 'Class', 'Order', 'Family')[iter_i]
-        threshold <- c(.008, .0188, .03, .05)[iter_i]
+        threshold <- c(.005, .017, .025, .044)[iter_i]
         # 
         df <- Sample_Sum_PCOFGS(df = Species_Yasmeen, 
                                 by = cluster_by, 
@@ -160,7 +164,7 @@ if(1){
                width = 9, height = 6)
         # four together
         p_all <- gridExtra::grid.arrange(p_Phylum, p_Class, 
-                                p_Order, p_Family, ncol = 2)
+                                         p_Order, p_Family, ncol = 2)
         ggsave('BarPlot_All.eps', p_all, device = 'eps',
                width = 16, height = 9)
     }
