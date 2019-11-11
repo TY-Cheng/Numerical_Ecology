@@ -199,7 +199,8 @@ if(1){
     
     Y <- df[,c("COD_out", "PO4P_out", "NH4N_out", "NO3N_out", "DO_out")]
     Y <- as.matrix(Y)
-    X <- df[,c("COD_in", "Nutrients_in", "DO_in", "MLVSS")]
+    # X <- df[,c("COD_in", "Nutrients_in", "DO_in", "MLVSS")]
+    X <- df[,c("COD_in", "Nutrients_in", "DO_in")]
     mvlm.res <- mvlm(Y~.^2, data = X)
     summary(mvlm.res)
     mvlm.res$y.rsq #is proportion (1st row as relative, others are absolute)
@@ -216,6 +217,42 @@ if(1){
 }
 
 
+# Sensitivity Analysis of MVLM --------------------------------------------
+X_predict <- 
+    rbind(
+        expand.grid(
+            COD_in = seq(from = 390, to = 410, by = 2),
+            Nutrients_in = seq(from = 32, to = 37, by = .5),
+            DO_in = seq(from = 0, to = .5, by = .1)
+        ),
+        expand.grid(
+            COD_in = seq(from = 290, to = 310, by = 2),
+            Nutrients_in = seq(from = 23, to = 28, by = .5),
+            DO_in = seq(from = 3.2, to = 3.7, by = .1)
+        ),
+        expand.grid(
+            COD_in = seq(from = 190, to = 210, by = 2),
+            Nutrients_in = seq(from = 15, to = 20, by = .5),
+            DO_in = seq(from = 6.5, to = 7, by = .1)
+        ),
+        expand.grid(
+            COD_in = seq(from = 90, to = 110, by = 2),
+            Nutrients_in = seq(from = 15, to = 20, by = .5),
+            DO_in = seq(from = 6.5, to = 7, by = .1)
+        ),
+        expand.grid(
+            COD_in = seq(from = 150, to = 170, by = 2),
+            Nutrients_in = seq(from = 23, to = 28, by = .5),
+            DO_in = seq(from = 3.2, to = 3.7, by = .1)
+        )
+    )
+
+Y_predict <- predict(mvlm.res, X_predict)
+
+X_predict[
+    seq_len(nrow(Y_predict))[rowSums(Y_predict<0)>0],
+]
+Y_predict[rowSums(Y_predict<0)>0,]
 # RDA ---------------------------------------------------------------------
 if (0) {
     df <- MBR_Yasmeen_imputed[,c(
