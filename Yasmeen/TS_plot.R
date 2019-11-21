@@ -1,7 +1,8 @@
-setwd("/Users/chengt/Documents/R/MBR_Ecology")
+setwd("/Users/chengt/Documents/R/Numerical_Ecology/Yasmeen/")
 load('MBR_Yasmeen.RData')
 library(tidyverse)
 library(reshape2)
+
 if (1) {
     # wo condition 6
     df <- MBR_Yasmeen[which(MBR_Yasmeen$Condition!=6),]
@@ -17,15 +18,34 @@ if (1) {
         "DO_out", "TN_out", "TP_out", "COD_out",
         "NH4N_in", "NH4N_out"
     )]
-    rectangle <- data.frame()
-    for (i in levels(df$Condition)) {
-        rectangle[as.numeric(i),1] <- min(df[df$Condition==i,]$Date)
-        rectangle[as.numeric(i),2] <- max(df[df$Condition==i,]$Date)
+    # Inserting NA Values
+    df_temp <- data.frame()
+    for (iter in unique(df$Condition)) {
+        df_temp <- rbind(
+            df_temp,
+            matrix(NA, nrow = 14, ncol = ncol(df), dimnames = list(NULL, colnames(df))),
+            df[df$Condition==iter,]
+        )
     }
-    rectangle$Condition <- c('Ref', 'A1', 'B1', 'B2', 'A2')
+    rownames(df_temp) <- df_temp$Date <- seq_along(df_temp$Date)
+    df <- df_temp
+    rm(df_temp)
+    # Rectangle settings
+    temp <- c(1, 13, 1, 9-1, 
+              1, 13, 1, 13-1, 
+              1, 13, 1, 16-1, 
+              1, 13, 1, 14-1, 
+              1, 13, 1, 15-1) %>% cumsum
+    rectangle <- data.frame(
+        V1 = temp[seq(from = 1, to = 20, by = 2)],
+        V2 = temp[seq(from = 2, to = 20, by = 2)],
+        Condition = c('', 'Ref', '', 'A1', '', 'B1', '', 'B2', '', 'A2')
+    )
     rectangle$position <- (rectangle$V1+rectangle$V2)/2
-    rectangle$colour <- alpha(RColorBrewer::brewer.pal(
-        n = 8, name = 'Set1'), alpha = .3)[c(1,2,3,5,6)]
+    rectangle$colour <- rep('#999999', 10)
+    rectangle$colour[seq(from = 2, to = 10, by = 2)] <- 
+        alpha(RColorBrewer::brewer.pal(n = 8, name = 'Set1'), alpha = .3
+        )[c(1,2,3,5,6)]
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
     shape_in <- 2
@@ -42,8 +62,8 @@ if (1) {
 
 # TS COD ------------------------------------------------------------------
 if (1) {
-    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
     svg(filename = 'TimeSeries_COD.svg', width = 12, height = 7)
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
     par(cex = 1,
         # oma = c(3, 2, 4, 2),
         mar = c(3.5, 3.5, 4, 3.5),
@@ -55,12 +75,14 @@ if (1) {
          xlim = range(df$Date), ylim = c(0, 1000),
          xaxt = 'n', yaxt = 'n', type = 'n',
          main = '', xlab = '', ylab = '', cex.axis = 1)
-    axis(side = 1, at = c(1,10,23,39,53,67), labels = c(1,10,23,39,53,67),
+    axis(side = 1, 
+         at = c(rectangle$V1, tail(rectangle$V2,1)),
+         labels = c(rectangle$V1, tail(rectangle$V2,1)),
          col = 'black', col.axis = 'black', lwd = 2.5, cex.axis = 1)
-    for (i in 1:nrow(rectangle)) {
-        rect(xleft = rectangle[i, 'V1'], xright = rectangle[i, 'V2'],
+    for (iter in 1:nrow(rectangle)) {
+        rect(xleft = rectangle[iter, 'V1'], xright = rectangle[iter, 'V2'],
              ybottom = -40,  ytop = 1040,
-             col = rectangle$colour[i], density = NA)
+             col = rectangle$colour[iter], density = NA)
     }
     
     # Lines
@@ -95,7 +117,7 @@ if (1) {
            col = 'gray', lty = 5, lwd = 1, xpd = F)
     # abline(h = 0, lty = 2, xpd = F)
     mtext(text = rectangle$Condition, side = 3, line = .5,
-          adj = c(.08, .24, .45, .67, .88),
+          adj = c(.15, .32, .53, .73, .93),
           col = 'black', cex = 1.4)
     
     title('(A)', cex.main = 1.3)
@@ -104,14 +126,14 @@ if (1) {
           side = 4, line = 2.2, adj = 1.1, col = 'black', cex = 1.6)
     mtext(text = 'COD concentration (mg/L)', 
           side = 2, line = 2, adj = 0, col = 'black', cex = 1.6)
-    shape::Arrows(x0 = c(5, 5, 60, 60), 
+    shape::Arrows(x0 = c(20, 20, 125, 125), 
                   y0 = c(-70, -70, 60, 60), 
-                  x1 = c(3, 5, 60, 62), 
+                  x1 = c(16, 20, 125, 130), 
                   y1 = c(-70, -85, 45, 60),
                   arr.type = 'triangle', lwd = 1)
     # Legend add in the first
     # Points legend
-    legend(x = 38, y = 10,
+    legend(x = 81, y = 10,
            # 'right',
            # inset = c(.03),
            legend = c('Removal efficiency',
@@ -146,12 +168,14 @@ if (1) {
          xlim = range(df$Date), ylim = c(0, 100),
          xaxt = 'n', yaxt = 'n', type = 'n',
          main = '', xlab = '', ylab = '', cex.axis = 1)
-    axis(side = 1, at = c(1,10,23,39,53,67), labels = c(1,10,23,39,53,67),
+    axis(side = 1, 
+         at = c(rectangle$V1, tail(rectangle$V2,1)),
+         labels = c(rectangle$V1, tail(rectangle$V2,1)),
          col = 'black', col.axis = 'black', lwd = 2.5, cex.axis = 1)
-    for (i in 1:nrow(rectangle)) {
-        rect(xleft = rectangle[i, 'V1'], xright = rectangle[i, 'V2'],
+    for (iter in 1:nrow(rectangle)) {
+        rect(xleft = rectangle[iter, 'V1'], xright = rectangle[iter, 'V2'],
              ybottom = -4,  ytop = 104,
-             col = rectangle$colour[i], density = NA)
+             col = rectangle$colour[iter], density = NA)
     }
     
     # Lines
@@ -186,9 +210,8 @@ if (1) {
            col = 'gray', lty = 5, lwd = 1, xpd = F)
     # abline(h = 0, lty = 2, xpd = F)
     mtext(text = rectangle$Condition, side = 3, line = .5,
-          adj = c(.08, .24, .45, .67, .88),
-          col = 'black', 
-          cex = 1.4)
+          adj = c(.15, .32, .53, .73, .93),
+          col = 'black', cex = 1.4)
     
     title('(B)', cex.main = 1.3)
     mtext(text = 'Time (day)', side = 1, line = 2, adj = .5, cex = 1.7)
@@ -196,14 +219,19 @@ if (1) {
           side = 4, line = 2.2, adj = 1, col = 'black', cex = 1.6)
     mtext(text = 'TN concentration (mg/L)', 
           side = 2, line = 2, adj = 0, col = 'black', cex = 1.6)
-    shape::Arrows(x0 = c(5, 5, 60, 60), 
+    # shape::Arrows(x0 = c(5, 5, 60, 60), 
+    #               y0 = c(-70, -70, 60, 60), 
+    #               x1 = c(3, 5, 60, 62), 
+    #               y1 = c(-70, -85, 45, 60),
+    #               arr.type = 'triangle', lwd = 1)
+    shape::Arrows(x0 = c(20, 20, 125, 125), 
                   y0 = c(-70, -70, 60, 60), 
-                  x1 = c(3, 5, 60, 62), 
+                  x1 = c(16, 20, 125, 130), 
                   y1 = c(-70, -85, 45, 60),
                   arr.type = 'triangle', lwd = 1)
     # Legend add in the first
     # Points legend
-    legend(x = 38, y = 10,
+    legend(x = 81, y = 10,
            # 'right',
            # inset = c(.03),
            legend = c('Removal efficiency',
@@ -239,12 +267,14 @@ if (1) {
          xlim = range(df$Date), ylim = c(0, 20),
          xaxt = 'n', yaxt = 'n', type = 'n',
          main = '', xlab = '', ylab = '', cex.axis = 1)
-    axis(side = 1, at = c(1,10,23,39,53,67), labels = c(1,10,23,39,53,67),
+    axis(side = 1, 
+         at = c(rectangle$V1, tail(rectangle$V2,1)),
+         labels = c(rectangle$V1, tail(rectangle$V2,1)),
          col = 'black', col.axis = 'black', lwd = 2.5, cex.axis = 1)
-    for (i in 1:nrow(rectangle)) {
-        rect(xleft = rectangle[i, 'V1'], xright = rectangle[i, 'V2'],
+    for (iter in 1:nrow(rectangle)) {
+        rect(xleft = rectangle[iter, 'V1'], xright = rectangle[iter, 'V2'],
              ybottom = -.8,  ytop = 20.7,
-             col = rectangle$colour[i], density = NA)
+             col = rectangle$colour[iter], density = NA)
     }
     
     # Lines
@@ -278,7 +308,7 @@ if (1) {
            col = 'gray', lty = 5, lwd = 1, xpd = F)
     # abline(h = 0, lty = 2, xpd = F)
     mtext(text = rectangle$Condition, side = 3, line = .5,
-          adj = c(.08, .24, .45, .67, .88),
+          adj = c(.15, .32, .53, .73, .93),
           col = 'black', cex = 1.4)
     
     title('(C)', cex.main = 1.3)
@@ -287,14 +317,19 @@ if (1) {
           side = 4, line = 2.2, adj = 1, col = 'black', cex = 1.6)
     mtext(text = 'TP concentration (mg/L)', 
           side = 2, line = 2, adj = 0, col = 'black', cex = 1.6)
-    shape::Arrows(x0 = c(5, 5, 60, 60), 
-                  y0 = c(-240, -240, 0, 0), 
-                  x1 = c(3, 5, 60, 62), 
+    # shape::Arrows(x0 = c(5, 5, 60, 60), 
+    #               y0 = c(-240, -240, 0, 0), 
+    #               x1 = c(3, 5, 60, 62), 
+    #               y1 = c(-240, -270, -30, 0),
+    #               arr.type = 'triangle', lwd = 1)
+    shape::Arrows(x0 = c(20, 20, 125, 125), 
+                  y0 = c(-240, -240, 0, 0),
+                  x1 = c(16, 20, 125, 130),
                   y1 = c(-240, -270, -30, 0),
                   arr.type = 'triangle', lwd = 1)
     # Legend add in the first
     # Points legend
-    legend(x = 38, y = -80,
+    legend(x = 81, y = -80,
            # 'right',
            # inset = c(.03),
            legend = c('Removal efficiency',
@@ -329,7 +364,9 @@ if (1) {
          xlim = range(df$Date), ylim = c(0, 100),
          xaxt = 'n', yaxt = 'n', type = 'n',
          main = '', xlab = '', ylab = '', cex.axis = 1)
-    axis(side = 1, at = c(1,10,23,39,53,67), labels = c(1,10,23,39,53,67),
+    axis(side = 1, 
+         at = c(rectangle$V1, tail(rectangle$V2,1)),
+         labels = c(rectangle$V1, tail(rectangle$V2,1)),
          col = 'black', col.axis = 'black', lwd = 2.5, cex.axis = 1)
     for (i in 1:nrow(rectangle)) {
         rect(xleft = rectangle[i, 'V1'], xright = rectangle[i, 'V2'],
@@ -368,7 +405,7 @@ if (1) {
            col = 'gray', lty = 5, lwd = 1, xpd = F)
     # abline(h = 0, lty = 2, xpd = F)
     mtext(text = rectangle$Condition, side = 3, line = .5,
-          adj = c(.08, .24, .45, .67, .88),
+          adj = c(.15, .32, .53, .73, .93),
           col = 'black', cex = 1.4)
     
     title('(D)', cex.main = 1.3)
@@ -377,14 +414,19 @@ if (1) {
           side = 4, line = 2.2, adj = 1.1, col = 'black', cex = 1.6)
     mtext(text = 'NH4N concentration (mg/L)', 
           side = 2, line = 2, adj = 0, col = 'black', cex = 1.6)
-    shape::Arrows(x0 = c(5, 5, 60, 60), 
+    # shape::Arrows(x0 = c(5, 5, 60, 60), 
+    #               y0 = c(-80, -80, 50, 50), 
+    #               x1 = c(3, 5, 60, 62), 
+    #               y1 = c(-80, -95, 35, 50),
+    #               arr.type = 'triangle', lwd = 1)
+    shape::Arrows(x0 = c(20, 20, 125, 125), 
                   y0 = c(-80, -80, 50, 50), 
-                  x1 = c(3, 5, 60, 62), 
+                  x1 = c(16, 20, 125, 130), 
                   y1 = c(-80, -95, 35, 50),
                   arr.type = 'triangle', lwd = 1)
     # Legend add in the first
     # Points legend
-    legend(x = 38, y = 10,
+    legend(x = 81, y = 10,
            # 'right',
            # inset = c(.03),
            legend = c('Removal efficiency',
