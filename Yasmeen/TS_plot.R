@@ -3,6 +3,8 @@ load('MBR_Yasmeen.RData')
 library(tidyverse)
 library(reshape2)
 library(scales)
+library(plotrix)
+
 
 if (1) {
     # wo condition 6
@@ -24,7 +26,7 @@ if (1) {
     for (iter in unique(df$Condition)) {
         df_temp <- rbind(
             df_temp,
-            matrix(NA, nrow = 14, ncol = ncol(df), dimnames = list(NULL, colnames(df))),
+            matrix(NA, nrow = 7, ncol = ncol(df), dimnames = list(NULL, colnames(df))),
             df[df$Condition==iter,]
         )
     }
@@ -32,18 +34,25 @@ if (1) {
     df <- df_temp
     rm(df_temp)
     # Rectangle settings
-    temp <- c(1, 13, 1, 9-1, 
-              1, 13, 1, 13-1, 
-              1, 13, 1, 16-1, 
-              1, 13, 1, 14-1, 
-              1, 13, 1, 15-1) %>% cumsum
+    temp <- c(1, 6, 1, 9-1, 
+              1, 6, 1, 13-1, 
+              1, 6, 1, 16-1, 
+              1, 6, 1, 14-1, 
+              1, 6, 1, 15-1) %>% cumsum
+    temp_axis <- c(1, 13, 1, 9-1, 
+                   1, 13, 1, 13-1, 
+                   1, 13, 1, 16-1, 
+                   1, 13, 1, 14-1, 
+                   1, 13, 1, 15-1) %>% cumsum
     rectangle <- data.frame(
         V1 = temp[seq(from = 1, to = 20, by = 2)],
         V2 = temp[seq(from = 2, to = 20, by = 2)],
+        V1_axis = temp_axis[seq(from = 1, to = 20, by = 2)],
+        V2_axis = temp_axis[seq(from = 2, to = 20, by = 2)],
         Condition = c('', 'Ref', '', 'A1', '', 'B1', '', 'B2', '', 'A2')
     )
     rectangle$position <- (rectangle$V1+rectangle$V2)/2
-    rectangle$colour <- rep('#999999', 10)
+    rectangle$colour <- rep('#99999980', 10)
     rectangle$colour[seq(from = 2, to = 10, by = 2)] <- 
         alpha(RColorBrewer::brewer.pal(n = 8, name = 'Set1'), alpha = .3
         )[c(1,2,3,5,6)]
@@ -70,35 +79,16 @@ if (1) {
         mar = c(3.5, 3.5, 4, 3.5),
         # mgp = c(.5, .5, 0),
         xpd = NA)
-    # Rectangle
+    # Overall
     y <- df$COD_in
     plot(x = df$Date, y = y, cex = 1,
          xlim = range(df$Date), ylim = c(0, 1000),
          xaxt = 'n', yaxt = 'n', type = 'n',
          main = '', xlab = '', ylab = '', cex.axis = 1)
-    
-    
-    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-    library(plotrix)
-    
-    axis.break(axis=1,breakpos=NULL,pos=NULL,bgcol="white",breakcol="black",
-               style="zigzag",brw=0.02)
-    axis.break(axis=1,breakpos=50,pos=NULL,bgcol="white",breakcol="black",
-               style="zigzag",brw=0.02)
-    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-    
-    axis(side = 1, 
+    axis(side = 1,
          at = c(rectangle$V1, tail(rectangle$V2,1)),
-         labels = c(rectangle$V1, tail(rectangle$V2,1)),
+         labels = c(rectangle$V1_axis, tail(rectangle$V2_axis,1)),
          col = 'black', col.axis = 'black', lwd = 2.5, cex.axis = 1)
-    for (iter in 1:nrow(rectangle)) {
-        rect(xleft = rectangle[iter, 'V1'], xright = rectangle[iter, 'V2'],
-             ybottom = -40,  ytop = 1040,
-             col = rectangle$colour[iter], density = NA)
-    }
-    
     # Lines
     axis(side = 2, at = seq(0, 500, 50), labels = seq(0, 500, 50),
          col = 'black', col.axis = 'black', lwd = 2.5, 
@@ -120,34 +110,52 @@ if (1) {
          col = 'black', col.axis = 'black', 
          lwd = 2.5, 
          cex.axis = 1)
-    # 
     y <- (1-(df$COD_out/df$COD_in))*100
     lines(x = df$Date, y = y, type = 'o', cex = 1.1, lwd = 1.3,
           col = color_efficiency,
           pch = shape_efficiency)
     # 
-    abline(v = c(1,10,23,39,53,67), 
+    
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+    # Breaks
+    for (iter in rowMeans(rectangle[rectangle$colour == '#99999980',c('V1','V2')])) {
+    axis.break(axis = 1, breakpos = iter, pos = NULL, 
+               bgcol = "white", breakcol = "black",
+               style = "zigzag", brw = 0.02)
+    }
+    # Rectangle
+    for (iter in 1:nrow(rectangle)) {
+        rect(xleft = rectangle[iter, 'V1'], xright = rectangle[iter, 'V2'],
+             ybottom = -1000,  ytop = 1040,
+             col = rectangle$colour[iter], density = NA)
+    }
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+    
+    # 
+    abline(v = temp, 
            h = c(seq(-100, 0, 20), seq(0, 100, 20)),
            col = 'gray', lty = 5, lwd = 1, xpd = F)
     # abline(h = 0, lty = 2, xpd = F)
-    mtext(text = rectangle$Condition, side = 3, line = .5,
-          adj = c(.15, .32, .53, .73, .93),
-          col = 'black', cex = 1.4)
+    mtext(text = rectangle$Condition, side = 3, line = .3,
+          adj = c(.13, .30, .50, .71, .91),
+          col = 'black', cex = 1.3)
     
     title('(A)', cex.main = 1.3)
-    mtext(text = 'Time (day)', side = 1, line = 2, adj = .5, cex = 1.7)
+    mtext(text = 'Time (day)', side = 1, line = 2.2, adj = .5, cex = 1.7)
     mtext(text = 'COD removal efficiency (%)', 
           side = 4, line = 2.2, adj = 1.1, col = 'black', cex = 1.6)
     mtext(text = 'COD concentration (mg/L)', 
           side = 2, line = 2, adj = 0, col = 'black', cex = 1.6)
-    shape::Arrows(x0 = c(20, 20, 125, 125), 
+    shape::Arrows(x0 = c(15, 15, 95, 95), 
                   y0 = c(-70, -70, 60, 60), 
-                  x1 = c(16, 20, 125, 130), 
+                  x1 = c(11, 15, 95, 100), 
                   y1 = c(-70, -85, 45, 60),
                   arr.type = 'triangle', lwd = 1)
     # Legend add in the first
     # Points legend
-    legend(x = 81, y = 10,
+    legend(x = 61, y = 10,
            # 'right',
            # inset = c(.03),
            legend = c('Removal efficiency',
@@ -176,7 +184,7 @@ if (1) {
         mar = c(3.5, 3.5, 4, 3.5),
         # mgp = c(.5, .5, 0),
         xpd = NA)
-    # Rectangle
+    # Overall
     y <- df$TN_in
     plot(x = df$Date, y = y, cex = 1,
          xlim = range(df$Date), ylim = c(0, 100),
@@ -184,13 +192,8 @@ if (1) {
          main = '', xlab = '', ylab = '', cex.axis = 1)
     axis(side = 1, 
          at = c(rectangle$V1, tail(rectangle$V2,1)),
-         labels = c(rectangle$V1, tail(rectangle$V2,1)),
+         labels = c(rectangle$V1_axis, tail(rectangle$V2_axis,1)),
          col = 'black', col.axis = 'black', lwd = 2.5, cex.axis = 1)
-    for (iter in 1:nrow(rectangle)) {
-        rect(xleft = rectangle[iter, 'V1'], xright = rectangle[iter, 'V2'],
-             ybottom = -4,  ytop = 104,
-             col = rectangle$colour[iter], density = NA)
-    }
     
     # Lines
     axis(side = 2, at = seq(0, 50, 5), labels = seq(0, 50, 5),
@@ -219,33 +222,47 @@ if (1) {
           col = color_efficiency,
           pch = shape_efficiency)
     # 
-    abline(v = c(1,10,23,39,53,67), 
+    
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+    # Breaks
+    for (iter in rowMeans(rectangle[rectangle$colour == '#99999980',c('V1','V2')])) {
+        axis.break(axis = 1, breakpos = iter, pos = NULL, 
+                   bgcol = "white", breakcol = "black",
+                   style = "zigzag", brw = 0.02)
+    }
+    # Rectangle
+    for (iter in 1:nrow(rectangle)) {
+        rect(xleft = rectangle[iter, 'V1'], xright = rectangle[iter, 'V2'],
+             ybottom = -200,  ytop = 200,
+             col = rectangle$colour[iter], density = NA)
+    }
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+    
+    # 
+    abline(v = temp, 
            h = c(seq(-100, 0, 20), seq(0, 100, 20)),
            col = 'gray', lty = 5, lwd = 1, xpd = F)
     # abline(h = 0, lty = 2, xpd = F)
-    mtext(text = rectangle$Condition, side = 3, line = .5,
-          adj = c(.15, .32, .53, .73, .93),
-          col = 'black', cex = 1.4)
+    mtext(text = rectangle$Condition, side = 3, line = .3,
+          adj = c(.13, .30, .50, .71, .91),
+          col = 'black', cex = 1.3)
     
     title('(B)', cex.main = 1.3)
-    mtext(text = 'Time (day)', side = 1, line = 2, adj = .5, cex = 1.7)
+    mtext(text = 'Time (day)', side = 1, line = 2.2, adj = .5, cex = 1.7)
     mtext(text = 'TN removal efficiency (%)', 
           side = 4, line = 2.2, adj = 1, col = 'black', cex = 1.6)
     mtext(text = 'TN concentration (mg/L)', 
           side = 2, line = 2, adj = 0, col = 'black', cex = 1.6)
-    # shape::Arrows(x0 = c(5, 5, 60, 60), 
-    #               y0 = c(-70, -70, 60, 60), 
-    #               x1 = c(3, 5, 60, 62), 
-    #               y1 = c(-70, -85, 45, 60),
-    #               arr.type = 'triangle', lwd = 1)
-    shape::Arrows(x0 = c(20, 20, 125, 125), 
+    shape::Arrows(x0 = c(15, 15, 95, 95), 
                   y0 = c(-70, -70, 60, 60), 
-                  x1 = c(16, 20, 125, 130), 
+                  x1 = c(11, 15, 95, 100), 
                   y1 = c(-70, -85, 45, 60),
                   arr.type = 'triangle', lwd = 1)
     # Legend add in the first
     # Points legend
-    legend(x = 81, y = 10,
+    legend(x = 61, y = 10,
            # 'right',
            # inset = c(.03),
            legend = c('Removal efficiency',
@@ -275,7 +292,7 @@ if (1) {
         mar = c(3.5, 3.5, 4, 3.5),
         # mgp = c(.5, .5, 0),
         xpd = NA)
-    # Rectangle
+    # Overall
     y <- df$TP_in
     plot(x = df$Date, y = y, cex = 1,
          xlim = range(df$Date), ylim = c(0, 20),
@@ -283,14 +300,8 @@ if (1) {
          main = '', xlab = '', ylab = '', cex.axis = 1)
     axis(side = 1, 
          at = c(rectangle$V1, tail(rectangle$V2,1)),
-         labels = c(rectangle$V1, tail(rectangle$V2,1)),
+         labels = c(rectangle$V1_axis, tail(rectangle$V2_axis,1)),
          col = 'black', col.axis = 'black', lwd = 2.5, cex.axis = 1)
-    for (iter in 1:nrow(rectangle)) {
-        rect(xleft = rectangle[iter, 'V1'], xright = rectangle[iter, 'V2'],
-             ybottom = -.8,  ytop = 20.7,
-             col = rectangle$colour[iter], density = NA)
-    }
-    
     # Lines
     axis(side = 2, at = seq(0, 10, 1), labels = seq(0, 10, 1),
          col = 'black', col.axis = 'black', lwd = 2.5, 
@@ -316,17 +327,37 @@ if (1) {
     lines(x = df$Date, y = y, type = 'o', cex = 1.1, lwd = 1.3,
           col = color_efficiency,
           pch = shape_efficiency)
+    
     # 
-    abline(v = c(1,10,23,39,53,67), 
+    
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+    # Breaks
+    for (iter in rowMeans(rectangle[rectangle$colour == '#99999980',c('V1','V2')])) {
+        axis.break(axis = 1, breakpos = iter, pos = NULL, 
+                   bgcol = "white", breakcol = "black",
+                   style = "zigzag", brw = 0.02)
+    }
+    # Rectangle
+    for (iter in 1:nrow(rectangle)) {
+        rect(xleft = rectangle[iter, 'V1'], xright = rectangle[iter, 'V2'],
+             ybottom = -1000,  ytop = 200,
+             col = rectangle$colour[iter], density = NA)
+    }
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+    
+    # 
+    abline(v = temp, 
            h = c(seq(-300, -100, 40), seq(-100, 100, 40)),
            col = 'gray', lty = 5, lwd = 1, xpd = F)
     # abline(h = 0, lty = 2, xpd = F)
-    mtext(text = rectangle$Condition, side = 3, line = .5,
-          adj = c(.15, .32, .53, .73, .93),
-          col = 'black', cex = 1.4)
+    mtext(text = rectangle$Condition, side = 3, line = .3,
+          adj = c(.13, .30, .50, .71, .91),
+          col = 'black', cex = 1.3)
     
     title('(C)', cex.main = 1.3)
-    mtext(text = 'Time (day)', side = 1, line = 2, adj = .5, cex = 1.7)
+    mtext(text = 'Time (day)', side = 1, line = 2.2, adj = .5, cex = 1.7)
     mtext(text = 'TP removal efficiency (%)', 
           side = 4, line = 2.2, adj = 1, col = 'black', cex = 1.6)
     mtext(text = 'TP concentration (mg/L)', 
@@ -336,14 +367,14 @@ if (1) {
     #               x1 = c(3, 5, 60, 62), 
     #               y1 = c(-240, -270, -30, 0),
     #               arr.type = 'triangle', lwd = 1)
-    shape::Arrows(x0 = c(20, 20, 125, 125), 
+    shape::Arrows(x0 = c(15, 15, 95, 95), 
                   y0 = c(-240, -240, 0, 0),
-                  x1 = c(16, 20, 125, 130),
+                  x1 = c(11, 15, 95, 100),
                   y1 = c(-240, -270, -30, 0),
                   arr.type = 'triangle', lwd = 1)
     # Legend add in the first
     # Points legend
-    legend(x = 81, y = -80,
+    legend(x = 61, y = -80,
            # 'right',
            # inset = c(.03),
            legend = c('Removal efficiency',
@@ -372,7 +403,7 @@ if (1) {
         mar = c(3.5, 3.5, 4, 3.5),
         # mgp = c(.5, .5, 0),
         xpd = NA)
-    # Rectangle
+    # Overall
     y <- df$NH4N_in
     plot(x = df$Date, y = y, cex = 1,
          xlim = range(df$Date), ylim = c(0, 100),
@@ -380,14 +411,8 @@ if (1) {
          main = '', xlab = '', ylab = '', cex.axis = 1)
     axis(side = 1, 
          at = c(rectangle$V1, tail(rectangle$V2,1)),
-         labels = c(rectangle$V1, tail(rectangle$V2,1)),
+         labels = c(rectangle$V1_axis, tail(rectangle$V2_axis,1)),
          col = 'black', col.axis = 'black', lwd = 2.5, cex.axis = 1)
-    for (i in 1:nrow(rectangle)) {
-        rect(xleft = rectangle[i, 'V1'], xright = rectangle[i, 'V2'],
-             ybottom = -4,  ytop = 104,
-             col = rectangle$colour[i], density = NA)
-    }
-    
     # Lines
     axis(side = 2, at = seq(0, 50, 5), labels = seq(0, 50, 5),
          col = 'black', col.axis = 'black', lwd = 2.5, cex.axis = .8)
@@ -413,34 +438,49 @@ if (1) {
     lines(x = df$Date, y = y, type = 'o', cex = 1.1, lwd = 1.3,
           col = color_efficiency,
           pch = shape_efficiency)
+    
     # 
-    abline(v = c(1,10,23,39,53,67), 
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+    # Breaks
+    for (iter in rowMeans(rectangle[rectangle$colour == '#99999980',c('V1','V2')])) {
+        axis.break(axis = 1, breakpos = iter, pos = NULL, 
+                   bgcol = "white", breakcol = "black",
+                   style = "zigzag", brw = 0.02)
+    }
+    # Rectangle
+    for (i in 1:nrow(rectangle)) {
+        rect(xleft = rectangle[i, 'V1'], xright = rectangle[i, 'V2'],
+             ybottom = -1000,  ytop = 1000,
+             col = rectangle$colour[i], density = NA)
+    }
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+    # 
+    
+    abline(v = temp, 
            h = c(seq(-100, 0, 20), seq(0, 100, 20)),
            col = 'gray', lty = 5, lwd = 1, xpd = F)
     # abline(h = 0, lty = 2, xpd = F)
-    mtext(text = rectangle$Condition, side = 3, line = .5,
-          adj = c(.15, .32, .53, .73, .93),
-          col = 'black', cex = 1.4)
+    mtext(text = rectangle$Condition, side = 3, line = .3,
+          adj = c(.13, .30, .50, .71, .91),
+          col = 'black', cex = 1.3)
     
     title('(D)', cex.main = 1.3)
-    mtext(text = 'Time (day)', side = 1, line = 2, adj = .5, cex = 1.7)
+    mtext(text = 'Time (day)', side = 1, line = 2.2, adj = .5, cex = 1.7)
     mtext(text = 'NH4N removal efficiency (%)', 
           side = 4, line = 2.2, adj = 1.1, col = 'black', cex = 1.6)
     mtext(text = 'NH4N concentration (mg/L)', 
           side = 2, line = 2, adj = 0, col = 'black', cex = 1.6)
-    # shape::Arrows(x0 = c(5, 5, 60, 60), 
-    #               y0 = c(-80, -80, 50, 50), 
-    #               x1 = c(3, 5, 60, 62), 
-    #               y1 = c(-80, -95, 35, 50),
-    #               arr.type = 'triangle', lwd = 1)
-    shape::Arrows(x0 = c(20, 20, 125, 125), 
+    # 
+    shape::Arrows(x0 = c(15, 15, 95, 95), 
                   y0 = c(-80, -80, 50, 50), 
-                  x1 = c(16, 20, 125, 130), 
+                  x1 = c(11, 15, 95, 100), 
                   y1 = c(-80, -95, 35, 50),
                   arr.type = 'triangle', lwd = 1)
     # Legend add in the first
     # Points legend
-    legend(x = 81, y = 10,
+    legend(x = 61, y = 10,
            # 'right',
            # inset = c(.03),
            legend = c('Removal efficiency',
