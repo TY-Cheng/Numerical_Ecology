@@ -2,6 +2,7 @@ setwd("/Users/chengt/Documents/R/Numerical_Ecology/Yasmeen/")
 load('MBR_Yasmeen.RData')
 library(tidyverse)
 library(reshape2)
+library(scales)
 
 if (1) {
     # wo condition 6
@@ -75,6 +76,19 @@ if (1) {
          xlim = range(df$Date), ylim = c(0, 1000),
          xaxt = 'n', yaxt = 'n', type = 'n',
          main = '', xlab = '', ylab = '', cex.axis = 1)
+    
+    
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+    library(plotrix)
+    
+    axis.break(axis=1,breakpos=NULL,pos=NULL,bgcol="white",breakcol="black",
+               style="zigzag",brw=0.02)
+    axis.break(axis=1,breakpos=50,pos=NULL,bgcol="white",breakcol="black",
+               style="zigzag",brw=0.02)
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+    
     axis(side = 1, 
          at = c(rectangle$V1, tail(rectangle$V2,1)),
          labels = c(rectangle$V1, tail(rectangle$V2,1)),
