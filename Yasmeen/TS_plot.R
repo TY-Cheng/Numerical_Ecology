@@ -72,7 +72,7 @@ if (1) {
 
 # TS COD ------------------------------------------------------------------
 if (1) {
-    svg(filename = 'TimeSeries_COD.svg', width = 12, height = 7)
+    cairo_pdf(filename = 'TimeSeries_COD.pdf', width = 12, height = 7)
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
     par(cex = 1,
         # oma = c(3, 2, 4, 2),
@@ -142,7 +142,7 @@ if (1) {
           adj = c(.13, .30, .50, .71, .91),
           col = 'black', cex = 1.3)
     
-    title('(A)', cex.main = 1.3)
+    title('(A)', cex.main = 1.3, line = 2.5)
     mtext(text = 'Time (day)', side = 1, line = 2.2, adj = .5, cex = 1.7)
     mtext(text = 'COD removal efficiency (%)', 
           side = 4, line = 2.2, adj = 1.1, col = 'black', cex = 1.6)
@@ -178,7 +178,7 @@ if (1) {
 # TS TN -------------------------------------------------------------------
 if (1) {
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-    svg(filename = 'TimeSeries_TN.svg', width = 12, height = 7)
+    cairo_pdf(filename = 'TimeSeries_TN.pdf', width = 12, height = 7)
     par(cex = 1,
         # oma = c(3, 2, 4, 2),
         mar = c(3.5, 3.5, 4, 3.5),
@@ -249,7 +249,7 @@ if (1) {
           adj = c(.13, .30, .50, .71, .91),
           col = 'black', cex = 1.3)
     
-    title('(B)', cex.main = 1.3)
+    title('(B)', cex.main = 1.3, line = 2.5)
     mtext(text = 'Time (day)', side = 1, line = 2.2, adj = .5, cex = 1.7)
     mtext(text = 'TN removal efficiency (%)', 
           side = 4, line = 2.2, adj = 1, col = 'black', cex = 1.6)
@@ -286,7 +286,7 @@ if (1) {
 # TS TP -------------------------------------------------------------------
 if (1) {
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-    svg(filename = 'TimeSeries_TP.svg', width = 12, height = 7)
+    cairo_pdf(filename = 'TimeSeries_TP.pdf', width = 12, height = 7)
     par(cex = 1,
         # oma = c(3, 2, 4, 2),
         mar = c(3.5, 3.5, 4, 3.5),
@@ -356,7 +356,7 @@ if (1) {
           adj = c(.13, .30, .50, .71, .91),
           col = 'black', cex = 1.3)
     
-    title('(C)', cex.main = 1.3)
+    title('(C)', cex.main = 1.3, line = 2.5)
     mtext(text = 'Time (day)', side = 1, line = 2.2, adj = .5, cex = 1.7)
     mtext(text = 'TP removal efficiency (%)', 
           side = 4, line = 2.2, adj = 1, col = 'black', cex = 1.6)
@@ -397,7 +397,7 @@ if (1) {
 # TS NH4N -----------------------------------------------------------------
 if (1) {
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-    svg(filename = 'TimeSeries_NH4N.svg', width = 12, height = 7)
+    cairo_pdf(filename = 'TimeSeries_NH4N.pdf', width = 12, height = 7)
     par(cex = 1,
         # oma = c(3, 2, 4, 2),
         mar = c(3.5, 3.5, 4, 3.5),
@@ -466,7 +466,7 @@ if (1) {
           adj = c(.13, .30, .50, .71, .91),
           col = 'black', cex = 1.3)
     
-    title('(D)', cex.main = 1.3)
+    title('(D)', cex.main = 1.3, line = 2.5)
     mtext(text = 'Time (day)', side = 1, line = 2.2, adj = .5, cex = 1.7)
     mtext(text = 'NH4N removal efficiency (%)', 
           side = 4, line = 2.2, adj = 1.1, col = 'black', cex = 1.6)
