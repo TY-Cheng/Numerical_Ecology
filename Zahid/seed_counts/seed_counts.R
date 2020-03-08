@@ -2,7 +2,7 @@ library(plyr)
 library(dplyr)
 library(multcomp)
 rm(list = ls())
-setwd('~/Desktop/')
+setwd('~/Documents/R/Numerical_Ecology/Zahid/seed_counts/')
 load('seed_counts.RData')
 
 # Tukey HSD ---------------------------------------------------------------
