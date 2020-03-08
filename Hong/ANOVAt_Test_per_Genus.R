@@ -6,10 +6,10 @@ if (1) {
     # 
     df_Abundancy_Genus <- 
         df_Abundancy_Genus[, colnames(df_Abundancy_Genus) != 'rank']
-    seq_DI <- grep(pattern = 'DI.', colnames(df_Abundancy_Genus), fixed = T)
-    seq_Mock <- grep(pattern = 'Mock.', colnames(df_Abundancy_Genus), fixed = T)
-    seq_AeMBR <- grep(pattern = 'AeMBR.', colnames(df_Abundancy_Genus), fixed = T)
-    seq_AnMBR <- grep(pattern = 'AnMBR.', colnames(df_Abundancy_Genus), fixed = T)
+    seq_DI <- grep(pattern = 'DI', colnames(df_Abundancy_Genus), fixed = T)
+    seq_Mock <- grep(pattern = 'Mock', colnames(df_Abundancy_Genus), fixed = T)
+    seq_AeMBR <- grep(pattern = 'AeMBR', colnames(df_Abundancy_Genus), fixed = T)
+    seq_AnMBR <- grep(pattern = 'AnMBR', colnames(df_Abundancy_Genus), fixed = T)
 }
 
 # 
