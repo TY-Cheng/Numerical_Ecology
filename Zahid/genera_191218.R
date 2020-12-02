@@ -1,5 +1,5 @@
 rm(list = ls())
-setwd('~/Documents/R/Zahid_Test_Ecology/')
+# setwd('~/Documents/R/Zahid_Test_Ecology/')
 load('genera_191218.RData')
 library(ape)
 library(vegan)
